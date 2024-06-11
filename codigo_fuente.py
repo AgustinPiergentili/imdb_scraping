@@ -123,4 +123,3 @@ if isinstance(opiniones, list):
 else:
     print(opiniones)
 
-
