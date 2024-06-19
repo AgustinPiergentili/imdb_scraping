@@ -1,4 +1,3 @@
-
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from sentimiento import Sentimiento
 from scrapear import Scrapear
@@ -47,7 +46,6 @@ class ProcesarPelicula(Sentimiento):
             for future in as_completed(futures):
                 result = future.result()
                 peliculas[result['nombre']] = result['datos']
-                print(f"Guardados datos de la película: {result['nombre']}")
         
         return peliculas
 
