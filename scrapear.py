@@ -1,7 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
 
-class Scrapear:
+
+class Scrapear():
+    """Clase que se encarga de obtener el HTML de la página de IMDb"""
     def __init__(self, url):
         self.url = url
         self.soup = None
@@ -10,26 +12,27 @@ class Scrapear:
         }
 
     def obtener_html(self):
-        try:
-            response = requests.get(self.url, headers=self.headers)
-            response.raise_for_status()
-            return response.content
-        except requests.RequestException as e:
-            print(f"Error al hacer la solicitud: {e}")
-            return None
+        html = requests.get(self.url, headers=self.headers)
+        return html.text
     
     def parsear_html(self, html):
+        """Parsea el HTML utilizando BeautifulSoup y lo almacena en self.soup"""
         self.soup = BeautifulSoup(html, 'html.parser')
         return self.soup
 
     def extraer_nombre(self):
+        # Ajuste para el título de la película
         nombre_peli = self.soup.find('a', attrs={'itemprop': 'url'})
         return nombre_peli.text.strip() if nombre_peli else "Nombre no encontrado"
     
     def extraer_ano(self):
+        # Ajuste para el año de la película
         ano_peli = self.soup.find('span', attrs={'class': 'nobr'})
         return ano_peli.text.strip() if ano_peli else "Año no encontrado"
 
     def extraer_opiniones(self):
-        opiniones = self.soup.find_all('div', class_='text show-more__control')
-        return [opinion.text.strip() for opinion in opiniones]
+        """Extrae todas las etiquetas de opiniones de la página"""
+        if self.soup:
+            opiniones = self.soup.find_all('div', class_='text show-more__control')
+            return [opinion.text.strip() for opinion in opiniones]
+        return []
