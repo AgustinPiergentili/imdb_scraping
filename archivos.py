@@ -26,3 +26,26 @@ class Archivos():
                     pelicula_con_mas_positivas = row['Nombre de la Película']
 
         return pelicula_con_mas_positivas, max_positivas
+    
+    @staticmethod
+    def ranking_mejores_peliculas(nombre_archivo):
+        """Lee el archivo CSV y devuelve un ranking de las 5 películas mejor valoradas"""
+        peliculas = []
+
+        with open(nombre_archivo, mode='r', newline='', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                peliculas.append({
+                    'Nombre': row['Nombre de la Película'],
+                    'Año': row['Año'],
+                    'Positivas': int(row['Positivas']),
+                    'Negativas': int(row['Negativas']),
+                    'Neutras': int(row['Neutras']),
+                    'ID': row['ID']
+                })
+
+        # Ordenar las películas por el número de valoraciones positivas (desc) y luego por el número de valoraciones negativas (asc)
+        peliculas.sort(key=lambda x: (-x['Positivas'], x['Negativas']))
+
+        # Devolver las 5 primeras películas del ranking
+        return peliculas[:5]

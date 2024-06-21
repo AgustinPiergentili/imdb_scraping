@@ -4,61 +4,102 @@ from procesarPelicula import *
 from archivos import Archivos
 
 
+MENU_PRINCIPAL = """
+Menú Principal
+1. Buscar películas por ID
+2. Buscar la película con más valoraciones positivas en un archivo CSV
+3. Ver ranking de las 5 películas mejor valoradas
+4. Salir
+"""
 
-# Solicitar rango de IDs
-def main():
+def solicitar_rango_ids():
+    """Solicita al usuario un rango de IDs y los valida."""
     while True:
-        # Mostrar el menú principal
-        print("\nMenú Principal")
-        print("1. Guardar datos de películas en CSV")
-        print("2. Buscar la película con más valoraciones positivas en un archivo CSV")
-        print("3. Salir")
-
-        opcion = input("Introduce una opción (1, 2, o 3): ")
-
-        if opcion == '1':
-            # Solicitar rango de IDs
+        try:
             inicio = int(input("Introduce el inicio del rango de IDs a scrapear: "))
             fin = int(input("Introduce el fin del rango de IDs a scrapear: "))
+            if inicio > fin:
+                inicio, fin = fin, inicio
+            return inicio, fin
+        except ValueError:
+            print("Error: Por favor, introduce un número válido.")
 
-            # Guardar datos de películas desde tt0000001 hasta tt0000030
-            peliculas = ProcesarPelicula.guardar_datos_peliculas_concurrente(inicio, fin)
-
-            while True:
-                # Mostrar nombres de películas al usuario
-                print("\nPelículas guardadas:")
-                for nombre_pelicula in peliculas.keys():
-                    print(nombre_pelicula)
-
-                # Solicitar al usuario el nombre de la película
-                nombre_pelicula_buscar = input("\nIntroduce el nombre de la película, 'guardar' para guardar todas las películas en CSV, o 'volver' para regresar al menú principal: ")
-
-                if nombre_pelicula_buscar.lower() == 'volver':
-                    break
-                elif nombre_pelicula_buscar.lower() == 'guardar':
-                    nombre_archivo = input("Introduce el nombre del archivo CSV (sin extensión): ") + ".csv"
-                    Archivos.guardar_peliculas(peliculas, nombre_archivo)
-                else:
-                    # Buscar opiniones por nombre de película
-                    opiniones = ProcesarPelicula.buscar_opiniones_por_nombre(peliculas, nombre_pelicula_buscar)
-                    print(opiniones)
-
-        elif opcion == '2':
-            # Buscar la película con más valoraciones positivas
-            nombre_archivo = input("Introduce el nombre del archivo CSV que deseas leer (con extensión .csv): ")
-            pelicula, positivas = Archivos.pelicula_mas_positiva(nombre_archivo)
-            if pelicula:
-                print(f"La película con más valoraciones positivas es '{pelicula}' con {positivas} valoraciones positivas.")
-            else:
-                print("No se encontraron películas en el archivo CSV.")
-
-        elif opcion == '3':
-            # Salir del programa
-            print("Saliendo del programa...")
+def manejar_guardar_peliculas(peliculas):
+    """Maneja la lógica para guardar las películas en un archivo CSV."""
+    while True:
+        nombre_archivo = input("Introduce el nombre del archivo CSV para guardar (sin extensión): ")
+        if nombre_archivo.endswith('.csv'):
+            print("El nombre del archivo no debe incluir la extensión '.csv'. Por favor, intenta de nuevo.")
+        else:
+            nombre_archivo += ".csv"
+            Archivos.guardar_peliculas(peliculas, nombre_archivo)
             break
 
+def manejar_busqueda_peliculas():
+    """Maneja la lógica para buscar y guardar películas por ID."""
+    inicio, fin = solicitar_rango_ids()
+    peliculas = ProcesarPelicula.guardar_datos_peliculas_concurrente(inicio, fin)
+
+    print("\nPelículas guardadas:")
+    for nombre_pelicula in peliculas.keys():
+        print(nombre_pelicula)
+
+    while True:
+        nombre_pelicula_buscar = input("\nIntroduce el nombre de la película, 'guardar' para guardar todas las películas en CSV, o 'volver' para regresar al menú principal: ")
+        if nombre_pelicula_buscar.lower() == 'volver':
+            break
+        elif nombre_pelicula_buscar.lower() == 'guardar':
+            manejar_guardar_peliculas(peliculas)
         else:
-            print("Opción no válida. Por favor, introduce 1, 2, o 3.")
+            opiniones = ProcesarPelicula.buscar_opiniones_por_nombre(peliculas, nombre_pelicula_buscar)
+            print(opiniones)
+
+def manejar_busqueda_positiva():
+    """Maneja la lógica para buscar la película con más valoraciones positivas."""
+    try:
+        nombre_archivo = input("Introduce el nombre del archivo CSV que deseas leer (con extensión .csv): ")
+        pelicula, positivas = Archivos.pelicula_mas_positiva(nombre_archivo)
+        if pelicula:
+            print(f"La película con más valoraciones positivas es '{pelicula}' con {positivas} valoraciones positivas.")
+        else:
+            print("No se encontraron películas en el archivo CSV.")
+    except FileNotFoundError:
+        print("Error: El archivo especificado no se encuentra.")
+    except Exception as e:
+        print(f"Se produjo un error: {e}")
+
+def manejar_ranking_peliculas():
+    """Maneja la lógica para mostrar el ranking de las 5 películas mejor valoradas."""
+    try:
+        nombre_archivo = input("Introduce el nombre del archivo CSV que deseas leer (con extensión .csv): ")
+        ranking = Archivos.ranking_mejores_peliculas(nombre_archivo)
+        if ranking:
+            print("Ranking de las 5 películas mejor valoradas:")
+            for i, pelicula in enumerate(ranking, start=1):
+                print(f"{i}. {pelicula['Nombre']} ({pelicula['Año']}) - {pelicula['Positivas']} valoraciones positivas, {pelicula['Negativas']} valoraciones negativas")
+        else:
+            print("No se encontraron películas en el archivo CSV.")
+    except FileNotFoundError:
+        print("Error: El archivo especificado no se encuentra.")
+    except Exception as e:
+        print(f"Se produjo un error: {e}")
+
+def main():
+    while True:
+        print(MENU_PRINCIPAL)
+        opcion = input("Introduce una opción (1, 2, 3, o 4): ")
+
+        if opcion == '1':
+            manejar_busqueda_peliculas()
+        elif opcion == '2':
+            manejar_busqueda_positiva()
+        elif opcion == '3':
+            manejar_ranking_peliculas()
+        elif opcion == '4':
+            print("Saliendo del programa...")
+            break
+        else:
+            print("Opción no válida. Por favor, introduce 1, 2, 3 o 4.")
 
 if __name__ == "__main__":
     main()

@@ -36,5 +36,3 @@ class Scrapear():
             opiniones = self.soup.find_all('div', class_='text show-more__control')
             return [opinion.text.strip() for opinion in opiniones]
         return []
-
-
