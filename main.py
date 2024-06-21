@@ -19,6 +19,11 @@ def main():
                 inicio = int(input("Introduce el inicio del rango de IDs a scrapear: "))
                 fin = int(input("Introduce el fin del rango de IDs a scrapear: "))
 
+                # Validar y ajustar el rango si es necesario
+                if inicio > fin:
+                    print("El valor de inicio es mayor que el valor de fin. Intercambiando valores...")
+                    inicio, fin = fin, inicio
+
                 # Guardar datos de películas desde el rango especificado
                 peliculas = ProcesarPelicula.guardar_datos_peliculas_concurrente(inicio, fin)
 
