@@ -2,6 +2,7 @@ from textblob import TextBlob
 from scrapear import Scrapear
 
 
+
 class Sentimiento(Scrapear):
 
     @staticmethod
